@@ -13,6 +13,34 @@
 
 body { background: var(--bg); }
 
+/* ===== Игровой экран ===== */
+.app {
+  min-height: 100vh;
+  padding: 0;
+  background:
+    radial-gradient(circle at 20% 0%, #3c7a26 0%, transparent 45%),
+    radial-gradient(circle at 85% 10%, #2f6b3a 0%, transparent 45%),
+    linear-gradient(180deg, #1c3a14, #0c2410);
+}
+.game-header {
+  text-align: center;
+  color: #f7ead0;
+  margin-bottom: 14px;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+.game-header h1 {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
+}
+.game-header p {
+  font-size: 15px;
+  font-style: italic;
+  color: #d8c79b;
+  margin-top: 4px;
+}
+
 .container {
   max-width: 560px;
   margin: 0 auto;

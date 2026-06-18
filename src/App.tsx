@@ -1,41 +1,33 @@
-import { useEffect, useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { supabase } from './lib/supabase';
-import { Auth } from './components/Auth';
-import { Entries } from './components/Entries';
+import { useState } from 'react';
+import { MainMenu } from './components/MainMenu';
+import { Game } from './components/Game';
+import { MapSelect } from './components/MapSelect';
+import type { LocationId } from './game/world';
 
+// «Legend of the Steppe Rider»: главное меню → игра.
+// Auth/Entries из стартового шаблона сохранены в src/components —
+// подключишь, когда захочешь сохранять прогресс игрока в Supabase.
 export default function App() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [screen, setScreen] = useState<'menu' | 'map' | 'game'>('menu');
+  const [destination, setDestination] = useState<LocationId | null>(null);
 
-  useEffect(() => {
-    // 1) текущая сессия при загрузке
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
-    // 2) подписка на вход/выход
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
+  if (screen === 'menu') return <MainMenu onPlay={() => setScreen('map')} />;
 
-  if (loading) return <main className="container"><p>Загрузка…</p></main>;
+  if (screen === 'map') {
+    return (
+      <MapSelect
+        onBack={() => setScreen('menu')}
+        onSelect={(location) => {
+          setDestination(location);
+          setScreen('game');
+        }}
+      />
+    );
+  }
 
   return (
-    <main className="container">
-      <header className="header">
-        <h1>Мой проект 🚀</h1>
-        {session && (
-          <button className="ghost" onClick={() => supabase.auth.signOut()}>
-            Выйти
-          </button>
-        )}
-      </header>
-
-      {/* Нет сессии → показываем вход. Есть → показываем приложение. */}
-      {!session ? <Auth /> : <Entries userEmail={session.user.email ?? ''} />}
+    <main className="app">
+      <Game destination={destination} onExit={() => setScreen('menu')} />
     </main>
   );
 }

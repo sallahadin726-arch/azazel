@@ -360,6 +360,8 @@
 }
 .rider.run { animation: horseGallop 0.46s ease-in-out infinite; }
 .rider.run .rider-art { animation: horseStride 0.46s ease-in-out infinite; transform-origin: center bottom; }
+.rider.rearing { animation: horseRear 0.78s ease-in-out infinite; }
+.rider.rearing .rider-art { animation: horseRearBody 0.78s ease-in-out infinite; transform-origin: center bottom; }
 .rider.jump { animation: jumpArc 0.64s ease-out; }
 .rider.dismounted {
   width: 72px;
@@ -403,6 +405,16 @@
   0% { bottom: 5%; }
   45% { bottom: 30%; }
   100% { bottom: 5%; }
+}
+@keyframes horseRear {
+  0%, 100% { bottom: 6%; }
+  30% { bottom: 22%; }
+  60% { bottom: 14%; }
+}
+@keyframes horseRearBody {
+  0%, 100% { transform: translateX(-50%) rotate(0deg) scale(1); }
+  30% { transform: translateX(-50%) rotate(-4deg) scale(1.02); }
+  60% { transform: translateX(-50%) rotate(2deg) scale(0.98); }
 }
 @keyframes heroWalk {
   0%, 100% { margin-bottom: 0; }

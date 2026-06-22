@@ -20,10 +20,12 @@ export function Game({ destination, onExit }: { destination?: LocationId | null;
   const [moving, setMoving] = useState(false);
   const [mounted, setMounted] = useState(true);
   const [insideCastle, setInsideCastle] = useState(false);
+  const [rearing, setRearing] = useState(false);
   const [gold, setGold] = useState(350);
   const jumpUntil = useRef(0);
   const moveRef = useRef(false);
   const walkRef = useRef<0 | -1 | 1>(0);
+  const rearRef = useRef(false);
   const heroXRef = useRef(heroX);
   const cameraXRef = useRef(cameraX);
   const mountedRef = useRef(mounted);
@@ -48,10 +50,27 @@ export function Game({ destination, onExit }: { destination?: LocationId | null;
     window.setTimeout(() => setJumping(false), 640);
   }
 
+  function startRear() {
+    if (!mounted || insideCastle) return;
+    rearRef.current = true;
+    moveRef.current = true;
+    setRearing(true);
+    setMoving(true);
+  }
+
+  function stopRear() {
+    rearRef.current = false;
+    moveRef.current = false;
+    setRearing(false);
+    setMoving(false);
+  }
+
   function dismount() {
-    if (heroX < FINISH_X || !mounted) return;
+    if (!mounted || insideCastle) return;
     setMounted(false);
     setMoving(false);
+    setRearing(false);
+    rearRef.current = false;
   }
 
   function enterCastle() {
@@ -79,8 +98,24 @@ export function Game({ destination, onExit }: { destination?: LocationId | null;
         if (mounted) startRide();
         else walk(1);
       }
-      if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') {
-        walk(-1);
+      if (event.key === 'ArrowLeft') {
+        if (!mounted && !insideCastle) {
+          walk(-1);
+        }
+      }
+      if (event.key.toLowerCase() === 'a') {
+        event.preventDefault();
+        if (mounted && !insideCastle) {
+          dismount();
+        } else if (!mounted && !insideCastle) {
+          walk(-1);
+        }
+      }
+      if (event.key.toLowerCase() === 'e') {
+        event.preventDefault();
+        if (mounted && !insideCastle) {
+          startRear();
+        }
       }
       if (event.key === 'Enter') {
         enterCastle();
@@ -94,6 +129,9 @@ export function Game({ destination, onExit }: { destination?: LocationId | null;
         event.key.toLowerCase() === 'a'
       ) {
         walk(0);
+      }
+      if (event.key.toLowerCase() === 'e') {
+        stopRear();
       }
     };
 
@@ -120,11 +158,14 @@ export function Game({ destination, onExit }: { destination?: LocationId | null;
       }
 
       if (moveRef.current) {
-        nextHeroX = Math.min(FINISH_X, nextHeroX + 14 * dt);
+        const speed = rearRef.current ? 18 : 14;
+        nextHeroX = Math.min(FINISH_X, nextHeroX + speed * dt);
 
         if (nextHeroX >= FINISH_X) {
           moveRef.current = false;
+          rearRef.current = false;
           setMoving(false);
+          setRearing(false);
           setGold((value) => value + 25);
         }
       }
@@ -209,7 +250,7 @@ export function Game({ destination, onExit }: { destination?: LocationId | null;
                 />
               )}
               <div
-                className={`rider ${moving ? 'run' : ''} ${jumping ? 'jump' : ''} ${mounted ? 'mounted' : 'dismounted'} ${walkDir ? 'walk' : ''} ${insideCastle ? 'inside' : ''}`}
+                className={`rider ${moving ? 'run' : ''} ${jumping ? 'jump' : ''} ${rearing ? 'rearing' : ''} ${mounted ? 'mounted' : 'dismounted'} ${walkDir ? 'walk' : ''} ${insideCastle ? 'inside' : ''}`}
                 style={{ left: `${heroWorldX}%` }}
               >
                 {mounted && (
@@ -272,7 +313,16 @@ export function Game({ destination, onExit }: { destination?: LocationId | null;
             >
               {heroX >= FINISH_X ? '⇣' : '♞'}
             </button>
-            <button className="sword-btn" aria-label="Атака">⚔</button>
+            <button
+              className="sword-btn"
+              onPointerDown={mounted ? startRear : undefined}
+              onPointerUp={stopRear}
+              onPointerLeave={stopRear}
+              onPointerCancel={stopRear}
+              aria-label="Встать на дыбы"
+            >
+              ⤴
+            </button>
             <button
               className="jump-btn"
               onPointerDown={mounted ? jump : enterCastle}
